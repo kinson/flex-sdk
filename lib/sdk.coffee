@@ -16,7 +16,13 @@ receiver = require 'kinvey-code-task-runner'
 module.exports = do ->
 
   class Service
-    constructor: (callback) ->
+    constructor: (options, callback) ->
+      if not callback? and typeof options is 'function'
+        callback = options
+        options = null
+
+      if options?.host? or options?.port?
+        options.type = 'http'
 
       @dataLink = require './service/dataLink'
       @businessLogic = require './service/businessLogic'
@@ -29,7 +35,7 @@ module.exports = do ->
         else if task.taskType is 'businessLogic'
           @businessLogic.process task, @moduleGenerator.generate(task), completionCallback
 
-      receiver.start taskReceivedCallback, (err, result) =>
+      receiver.start options, taskReceivedCallback, (err, result) =>
         if err?
           return callback new Error "Could not start task receiver: #{err}"
         callback null, this
